@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watch Calculator</title>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --watch-bg: #222222;
+            --text-main: #ffffff;
+            --text-green: #689f38;
+            --btn-green: #558b2f;
+            --text-orange: #ff9800;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
+            user-select: none;
+        }
+
+        /* Головний контейнер годинника */
+        .watch {
+            width: 300px;
+            height: 300px;
+            background-color: var(--watch-bg);
+            border-radius: 50%;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Секція дисплею */
+        .display {
+            height: 38%;
+            padding: 25px 30px 5px 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            background-color: #000;
+            box-sizing: border-box;
+        }
+
+        /* Поле вводу (по центру, не вилазить за краї) */
+        .expression-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: auto;
+            scrollbar-width: none; /* Приховуємо скролбар для Firefox */
+        }
+        
+        .expression-container::-webkit-scrollbar {
+            display: none; /* Приховуємо скролбар для Chrome/Safari */
+        }
+
+        .expression {
+            color: var(--text-main);
+            font-size: 22px;
+            min-height: 28px;
+            white-space: nowrap; /* Забороняємо перенесення на новий рядок */
+            text-align: center;
+        }
+
+        .expression span.op {
+            color: var(--text-green);
+        }
+
+        /* Поле результату (справа) */
+        .result-row {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            width: 100%;
+            margin-top: 2px;
+        }
+
+        .result {
+            color: var(--text-green);
+            font-size: 24px;
+            flex-grow: 1;
+            text-align: right;
+            margin-right: 12px;
+            min-height: 28px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Кнопка стирання */
+        .backspace {
+            background-color: var(--btn-green);
+            color: black;
+            border: none;
+            border-radius: 8px;
+            width: 38px;
+            height: 24px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 25% 100%, 0% 50%);
+            transition: transform 0.1s ease, filter 0.1s ease;
+        }
+
+        .backspace:active {
+            transform: scale(0.85);
+            filter: brightness(0.8);
+        }
+
+        /* Секція клавіатури */
+        .keypad {
+            height: 62%;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            padding: 5px 15px 15px 15px;
+            gap: 2px;
+        }
+
+        /* Стилі та анімації кнопок */
+        .btn {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 20px;
+            cursor: pointer;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.1s ease;
+        }
+
+        .btn:active {
+            transform: scale(0.8);
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn.orange { color: var(--text-orange); }
+        .btn.green { color: var(--text-green); }
+        
+        .btn.bg-green {
+            background-color: var(--btn-green);
+            color: white;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            margin: auto;
+            transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.1s ease;
+        }
+        
+        .btn.bg-green:active {
+            transform: scale(0.85);
+            background-color: #3e6b21;
+        }
+
+        .btn.small { font-size: 14px; font-weight: bold; }
+        .empty { visibility: hidden; }
+
+    </style>
+</head>
+<body>
+
+    <div class="watch">
+        <div class="display">
+            <div class="expression-container" id="scroll-container">
+                <div class="expression" id="expression"></div>
+            </div>
+            <div class="result-row">
+                <div class="result" id="result"></div>
+                <button class="backspace" onclick="backspace()">✖</button>
+            </div>
+        </div>
+        <div class="keypad" id="keypad">
+            </div>
+    </div>
+
+    <script>
+        let currentExpr = "";
+        let currentPage = 1;
+
+        const pages = {
+            1: [
+                { t: 'C', c: 'btn orange', a: 'clear' },
+                { t: '÷', c: 'btn green', a: '/' },
+                { t: '×', c: 'btn green', a: '*' },
+                { t: '-', c: 'btn green', a: '-' },
+                
+                { t: '7', c: 'btn', a: '7' },
+                { t: '8', c: 'btn', a: '8' },
+                { t: '9', c: 'btn', a: '9' },
+                { t: '+', c: 'btn green', a: '+' },
+                
+                { t: '4', c: 'btn', a: '4' },
+                { t: '5', c: 'btn', a: '5' },
+                { t: '6', c: 'btn', a: '6' },
+                { t: '.', c: 'btn green', a: '.' },
+                
+                { t: '1', c: 'btn', a: '1' },
+                { t: '2', c: 'btn', a: '2' },
+                { t: '3', c: 'btn', a: '3' },
+                { t: '=', c: 'btn bg-green', a: '=' },
+                
+                { t: '', c: 'empty', a: '' },
+                { t: '0', c: 'btn', a: '0' },
+                { t: '1/2', c: 'btn green small', a: 'toggle' },
+                { t: '', c: 'empty', a: '' }
+            ],
+            2: [
+                { t: 'C', c: 'btn orange', a: 'clear' },
+                { t: '( )', c: 'btn green', a: 'paren' },
+                { t: '%', c: 'btn green', a: '%' },
+                { t: '+/-', c: 'btn green', a: 'sign' },
+                
+                { t: '7', c: 'btn', a: '7' },
+                { t: '8', c: 'btn', a: '8' },
+                { t: '9', c: 'btn', a: '9' },
+                { t: '√', c: 'btn green', a: 'sqrt' },
+                
+                { t: '4', c: 'btn', a: '4' },
+                { t: '5', c: 'btn', a: '5' },
+                { t: '6', c: 'btn', a: '6' },
+                { t: '.', c: 'btn green', a: '.' },
+                
+                { t: '1', c: 'btn', a: '1' },
+                { t: '2', c: 'btn', a: '2' },
+                { t: '3', c: 'btn', a: '3' },
+                { t: '=', c: 'btn bg-green', a: '=' },
+                
+                { t: '', c: 'empty', a: '' },
+                { t: '0', c: 'btn', a: '0' },
+                { t: '2/2', c: 'btn green small', a: 'toggle' },
+                { t: '', c: 'empty', a: '' }
+            ]
+        };
+
+        function renderKeypad() {
+            const keypad = document.getElementById('keypad');
+            keypad.innerHTML = '';
+            
+            pages[currentPage].forEach(btn => {
+                const button = document.createElement('button');
+                button.className = btn.c;
+                button.innerText = btn.t;
+                if (btn.a !== '') {
+                    button.onclick = () => handleInput(btn.a);
+                }
+                keypad.appendChild(button);
+            });
+        }
+
+        function scrollToRight() {
+            const container = document.getElementById('scroll-container');
+            container.scrollLeft = container.scrollWidth;
+        }
+
+        function updateDisplay() {
+            const exprDiv = document.getElementById('expression');
+            
+            let formattedExpr = currentExpr
+                .replace(/\//g, '<span class="op">÷</span>')
+                .replace(/\*/g, '<span class="op">×</span>')
+                .replace(/\+/g, '<span class="op">+</span>')
+                .replace(/\-/g, '<span class="op">-</span>');
+                
+            exprDiv.innerHTML = formattedExpr;
+            calculateRealTime();
+            
+            // Прокручуємо до кінця виразу, якщо він задовгий
+            setTimeout(scrollToRight, 10);
+        }
+
+        function handleInput(action) {
+            if (action === 'clear') {
+                currentExpr = "";
+                document.getElementById('result').innerText = "";
+            } else if (action === 'toggle') {
+                currentPage = currentPage === 1 ? 2 : 1;
+                renderKeypad();
+                return;
+            } else if (action === '=') {
+                let res = document.getElementById('result').innerText;
+                if (res) {
+                    currentExpr = res.replace('=', '');
+                    document.getElementById('result').innerText = "";
+                }
+            } else if (action === 'paren') {
+                let openCount = (currentExpr.match(/\(/g) || []).length;
+                let closeCount = (currentExpr.match(/\)/g) || []).length;
+                currentExpr += (openCount > closeCount) ? ')' : '(';
+            } else if (action === 'sqrt') {
+                currentExpr += '√(';
+            } else if (action === 'sign') {
+                const match = currentExpr.match(/(\d+\.?\d*)$/);
+                if (match) {
+                    currentExpr = currentExpr.slice(0, match.index) + '(-' + match[0];
+                }
+            } else {
+                currentExpr += action;
+            }
+            updateDisplay();
+        }
+
+        function backspace() {
+            if (currentExpr.length > 0) {
+                if (currentExpr.slice(-2) === '√(') {
+                    currentExpr = currentExpr.slice(0, -2);
+                } else {
+                    currentExpr = currentExpr.slice(0, -1);
+                }
+                updateDisplay();
+            }
+        }
+
+        function calculateRealTime() {
+            if (currentExpr === "") {
+                document.getElementById('result').innerText = "";
+                return;
+            }
+
+            try {
+                let calcStr = currentExpr
+                    .replace(/×/g, '*')
+                    .replace(/÷/g, '/')
+                    .replace(/%/g, '/100');
+
+                calcStr = calcStr.replace(/√\(/g, 'Math.sqrt(');
+
+                let openCount = (calcStr.match(/\(/g) || []).length;
+                let closeCount = (calcStr.match(/\)/g) || []).length;
+                while (openCount > closeCount) {
+                    calcStr += ')';
+                    closeCount++;
+                }
+
+                const result = new Function('return ' + calcStr)();
+                
+                if (result !== undefined && !isNaN(result) && typeof result === 'number' && result !== Infinity) {
+                    let finalResult = Math.round(result * 10000000) / 10000000;
+                    document.getElementById('result').innerText = '=' + finalResult;
+                } else {
+                    document.getElementById('result').innerText = "";
+                }
+            } catch (e) {
+                document.getElementById('result').innerText = "";
+            }
+        }
+
+        // Ініціалізація
+        renderKeypad();
+    </script>
+</body>
+</html>
