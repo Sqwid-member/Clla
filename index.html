@@ -2,365 +2,640 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Watch Calculator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Watch Calculator Pro MAX</title>
     <style>
         :root {
             --bg-color: #000000;
-            --watch-bg: #222222;
+            --watch-bg: #1a1a1a;
             --text-main: #ffffff;
-            --text-green: #689f38;
+            --text-green: #76b041;
             --btn-green: #558b2f;
             --text-orange: #ff9800;
+            --menu-bg: rgba(20, 20, 20, 0.98);
         }
 
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: var(--bg-color);
-            font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
-            user-select: none;
-        }
-
-        /* Головний контейнер годинника */
-        .watch {
-            width: 300px;
-            height: 300px;
-            background-color: var(--watch-bg);
-            border-radius: 50%;
-            overflow: hidden;
-            position: relative;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Секція дисплею */
-        .display {
-            height: 38%;
-            padding: 25px 30px 5px 30px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            align-items: center;
-            background-color: #000;
+        * {
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
             box-sizing: border-box;
         }
 
-        /* Поле вводу (по центру, не вилазить за краї) */
+        body {
+            margin: 0; padding: 0;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; background-color: var(--bg-color);
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            user-select: none; overflow: hidden;
+            touch-action: none; overscroll-behavior: none;
+        }
+
+        .watch {
+            width: 100vw; height: 100vw;
+            max-width: 500px; max-height: 500px;
+            background-color: var(--watch-bg);
+            border-radius: 50%; overflow: hidden;
+            position: relative; display: flex; flex-direction: column;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        /* --- ЕКРАН ТА КНОПКИ КАЛЬКУЛЯТОРА --- */
+        .display {
+            height: 40%; padding: 12% 12% 2% 12%;
+            display: flex; flex-direction: column;
+            justify-content: flex-end; align-items: center;
+            background-color: #000;
+        }
+
         .expression-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow-x: auto;
-            scrollbar-width: none; /* Приховуємо скролбар для Firefox */
+            width: 100%; display: flex; justify-content: center;
+            overflow-x: auto; scrollbar-width: none;
         }
-        
-        .expression-container::-webkit-scrollbar {
-            display: none; /* Приховуємо скролбар для Chrome/Safari */
-        }
+        .expression-container::-webkit-scrollbar { display: none; }
 
         .expression {
-            color: var(--text-main);
-            font-size: 22px;
-            min-height: 28px;
-            white-space: nowrap; /* Забороняємо перенесення на новий рядок */
-            text-align: center;
+            color: var(--text-main); font-size: 6.5vw;
+            min-height: 7vw; white-space: nowrap; transition: all 0.2s ease;
         }
+        .expression span.op { color: var(--text-green); }
 
-        .expression span.op {
-            color: var(--text-green);
-        }
-
-        /* Поле результату (справа) */
         .result-row {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            width: 100%;
-            margin-top: 2px;
+            display: flex; justify-content: flex-end; align-items: center;
+            width: 100%; margin-top: 1vh;
         }
 
         .result {
-            color: var(--text-green);
-            font-size: 24px;
-            flex-grow: 1;
-            text-align: right;
-            margin-right: 12px;
-            min-height: 28px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            color: var(--text-green); font-size: 7.5vw; text-align: right;
+            margin-right: 5%; min-height: 8vw; font-weight: 500;
         }
 
-        /* Кнопка стирання */
         .backspace {
-            background-color: var(--btn-green);
-            color: black;
-            border: none;
-            border-radius: 8px;
-            width: 38px;
-            height: 24px;
-            font-size: 14px;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background-color: var(--btn-green); color: black; border: none;
+            border-radius: 4px; width: 12vw; height: 8vw; font-size: 4vw;
+            cursor: pointer; display: flex; justify-content: center; align-items: center;
             clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 25% 100%, 0% 50%);
-            transition: transform 0.1s ease, filter 0.1s ease;
         }
+        .backspace:active { transform: scale(0.85); opacity: 0.8; }
 
-        .backspace:active {
-            transform: scale(0.85);
-            filter: brightness(0.8);
-        }
-
-        /* Секція клавіатури */
         .keypad {
-            height: 62%;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(5, 1fr);
-            padding: 5px 15px 15px 15px;
-            gap: 2px;
+            height: 60%; display: grid;
+            grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(5, 1fr);
+            padding: 2% 10% 12% 10%; gap: 0; /* Прибрали gap для більшої зони натискання */
         }
 
-        /* Стилі та анімації кнопок */
         .btn {
-            background: transparent;
-            border: none;
-            color: var(--text-main);
-            font-size: 20px;
-            cursor: pointer;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.1s ease;
+            background: transparent; border: none; color: var(--text-main);
+            font-size: 6.5vw; cursor: pointer; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            width: 100%; height: 100%; /* Розтягуємо на всю комірку */
+            transition: transform 0.05s, background-color 0.05s; /* Дуже швидка анімація */
         }
 
-        .btn:active {
-            transform: scale(0.8);
-            background-color: rgba(255, 255, 255, 0.15);
-        }
+        /* Клас для швидкого відгуку замість :active */
+        .btn.pressed { transform: scale(0.8); background-color: rgba(255, 255, 255, 0.2); }
 
         .btn.orange { color: var(--text-orange); }
         .btn.green { color: var(--text-green); }
         
-        .btn.bg-green {
-            background-color: var(--btn-green);
-            color: white;
-            border-radius: 50%;
-            width: 45px;
-            height: 45px;
-            margin: auto;
-            transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.1s ease;
-        }
+        .btn-wrapper { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; }
         
-        .btn.bg-green:active {
-            transform: scale(0.85);
-            background-color: #3e6b21;
+        .btn.bg-green {
+            background-color: var(--btn-green); color: white;
+            width: 14vw; height: 14vw; border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
-        .btn.small { font-size: 14px; font-weight: bold; }
+        .btn.small { font-size: 4.5vw; font-weight: bold; }
         .empty { visibility: hidden; }
+
+        /* --- ЗАГАЛЬНІ СТИЛІ МЕНЮ --- */
+        .menu-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--menu-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border-radius: 50%; display: flex; flex-direction: column;
+            transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 10;
+        }
+        .menu-overlay.active { transform: translateY(0); }
+
+        .menu-title {
+            color: var(--text-orange); font-size: 4.5vw; text-align: center;
+            margin-top: 15%; font-weight: bold;
+        }
+
+        .menu-content {
+            flex: 1; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; width: 100%;
+        }
+
+        .menu-btn {
+            background: #2a2a2a; color: white; border: 1px solid #444;
+            padding: 12px 25px; border-radius: 25px; font-size: 4.5vw;
+            width: 70%; margin-bottom: 12px;
+        }
+        .menu-btn:active { background: #444; }
+
+        .bottom-bar {
+            height: 25%; display: flex; justify-content: center;
+            align-items: flex-start; padding-top: 10px; position: relative;
+        }
+
+        .back-btn {
+            background: rgba(80, 80, 80, 0.6); color: white; border: none;
+            border-radius: 20px; padding: 8px 25px; font-size: 4vw; z-index: 2;
+        }
+        .back-btn:active { background: #777; }
+
+        .side-btn {
+            position: absolute; bottom: 45%; 
+            width: 12vw; height: 12vw; border-radius: 50%;
+            background: rgba(85, 139, 47, 0.8); color: white; border: none;
+            font-size: 5vw; display: flex; justify-content: center; align-items: center;
+        }
+        .side-btn:active { transform: scale(0.9); }
+        .side-btn.left { left: 15%; background: rgba(100, 100, 100, 0.8); }
+        .side-btn.right { right: 15%; }
+
+        /* --- ІСТОРІЯ --- */
+        .history-scroll {
+            flex: 1; width: 100%; overflow-y: auto;
+            padding: 5% 15% 5% 15%; touch-action: pan-y; scrollbar-width: none;
+        }
+        .history-scroll::-webkit-scrollbar { display: none; }
+
+        .history-session {
+            background: rgba(255, 255, 255, 0.05); border-left: 3px solid var(--btn-green);
+            border-radius: 8px; padding: 10px; margin-bottom: 15px;
+        }
+        
+        .session-time { color: #888; font-size: 3vw; text-align: right; margin-bottom: 5px; }
+
+        .history-item {
+            display: flex; flex-direction: column; align-items: flex-end;
+            border-bottom: 1px solid rgba(255,255,255,0.1); padding: 5px 0;
+        }
+        .history-item:last-child { border-bottom: none; }
+
+        .h-expr { color: #ccc; font-size: 4vw; }
+        .h-res { color: var(--text-green); font-size: 5vw; font-weight: bold; }
+
+        /* --- НОТАТКИ --- */
+        .notes-grid {
+            flex: 1; width: 100%; overflow-y: auto; touch-action: pan-y;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            padding: 5% 12% 0 12%; scrollbar-width: none;
+        }
+        .notes-grid::-webkit-scrollbar { display: none; }
+
+        .note-card {
+            background: #222; border: 1px solid #444; border-radius: 10px;
+            padding: 10px; font-size: 3.5vw; color: white;
+            height: 22vw; overflow: hidden; word-break: break-word;
+        }
+        .note-card:active { background: #333; }
+
+        .note-textarea {
+            width: 80%; height: 50%; background: transparent; border: 1px solid #555;
+            color: white; font-size: 4.5vw; border-radius: 10px; padding: 10px;
+            resize: none; margin-top: 10%;
+        }
+        
+        .note-reader {
+            width: 75%; height: 55%; overflow-y: auto; touch-action: pan-y;
+            color: white; font-size: 4.5vw; text-align: center; margin-top: 15%;
+            word-break: break-word;
+        }
+
+        .settings-panel { width: 70%; display: flex; flex-direction: column; gap: 15px; margin-top: 10%; color: white;}
+        .settings-row { display: flex; justify-content: space-between; align-items: center; font-size: 4vw;}
+        input[type="range"] { width: 60%; }
+        input[type="color"] { background: none; border: none; width: 40px; height: 30px; }
 
     </style>
 </head>
 <body>
 
-    <div class="watch">
+    <div class="watch" id="watch-container">
+        
         <div class="display">
             <div class="expression-container" id="scroll-container">
                 <div class="expression" id="expression"></div>
             </div>
             <div class="result-row">
                 <div class="result" id="result"></div>
-                <button class="backspace" onclick="backspace()">✖</button>
+                <button class="backspace" id="btn-backspace">✖</button>
             </div>
         </div>
-        <div class="keypad" id="keypad">
+        <div class="keypad" id="keypad"></div>
+
+        <div class="menu-overlay" id="main-menu">
+            <div class="menu-title">Додатково</div>
+            <div class="menu-content">
+                <button class="menu-btn" onclick="openMenu('history-menu')">Історія</button>
+                <button class="menu-btn" onclick="openMenu('notes-list-menu')">Нотатки</button>
             </div>
+            <div class="bottom-bar">
+                <button class="back-btn" onclick="closeMenu('main-menu')">▼ Назад</button>
+            </div>
+        </div>
+
+        <div class="menu-overlay" id="history-menu">
+            <div class="menu-title" style="margin-top: 10%; margin-bottom: 5px;">Історія</div>
+            <div class="history-scroll" id="history-list"></div>
+            <div class="bottom-bar">
+                <button class="back-btn" onclick="closeMenu('history-menu')">▼ Назад</button>
+            </div>
+        </div>
+
+        <div class="menu-overlay" id="notes-list-menu">
+            <div class="menu-title" style="margin-top: 10%; margin-bottom: 5px;">Нотатки</div>
+            <div class="notes-grid" id="notes-grid"></div>
+            <div class="bottom-bar">
+                <button class="side-btn left" onclick="openMenu('notes-settings-menu')">⚙️</button>
+                <button class="back-btn" onclick="closeMenu('notes-list-menu')">▼</button>
+                <button class="side-btn right" onclick="openNoteEditor()">✏️</button>
+            </div>
+        </div>
+
+        <div class="menu-overlay" id="note-edit-menu">
+            <textarea class="note-textarea" id="note-input" placeholder="Пишіть тут..."></textarea>
+            <div class="bottom-bar">
+                <button class="back-btn" onclick="closeMenu('note-edit-menu')">▼</button>
+                <button class="side-btn right" onclick="saveNote()">💾</button>
+            </div>
+        </div>
+
+        <div class="menu-overlay" id="note-read-menu">
+            <div class="note-reader" id="note-reader-content"></div>
+            <div class="bottom-bar" style="height: 20%;">
+                <button class="back-btn" onclick="closeMenu('note-read-menu')">▼ Назад</button>
+            </div>
+        </div>
+
+        <div class="menu-overlay" id="notes-settings-menu">
+            <div class="menu-title" style="margin-top: 10%;">Вигляд нотаток</div>
+            <div class="settings-panel">
+                <div class="settings-row">
+                    <span>Розмір:</span>
+                    <input type="range" id="set-size" min="12" max="30" value="16" oninput="applySettings()">
+                </div>
+                <div class="settings-row">
+                    <span>Колір:</span>
+                    <input type="color" id="set-color" value="#ffffff" oninput="applySettings()">
+                </div>
+                <div class="settings-row">
+                    <span>Яскравість:</span>
+                    <input type="range" id="set-bright" min="30" max="150" value="100" oninput="applySettings()">
+                </div>
+            </div>
+            <div class="bottom-bar">
+                <button class="back-btn" onclick="closeMenu('notes-settings-menu')">▼ Назад</button>
+            </div>
+        </div>
+
     </div>
 
     <script>
+        // --- ДАНІ ТА СТАН ---
         let currentExpr = "";
         let currentPage = 1;
+        
+        let historyData = []; // Масив сесій (масив масивів)
+        let isSessionActive = false; // Чи відкрита поточна сесія історії
+        
+        let notesData = [];
+        let editingNoteId = null;
+        let noteSettings = { size: 16, color: '#ffffff', bright: 100 };
 
+        // Завантаження даних
+        function loadSavedData() {
+            const savedExpr = localStorage.getItem('calc_expr');
+            if (savedExpr) currentExpr = savedExpr;
+
+            const savedHist = localStorage.getItem('calc_history');
+            if (savedHist) historyData = JSON.parse(savedHist);
+
+            const savedNotes = localStorage.getItem('calc_notes');
+            if (savedNotes) notesData = JSON.parse(savedNotes);
+
+            const savedSet = localStorage.getItem('calc_settings');
+            if (savedSet) {
+                noteSettings = JSON.parse(savedSet);
+                document.getElementById('set-size').value = noteSettings.size;
+                document.getElementById('set-color').value = noteSettings.color;
+                document.getElementById('set-bright').value = noteSettings.bright;
+            }
+
+            // Якщо остання сесія не закрита, відновлюємо стан
+            if (historyData.length > 0 && !localStorage.getItem('calc_session_closed')) {
+                isSessionActive = true;
+            } else {
+                isSessionActive = false;
+            }
+            updateDisplay();
+        }
+
+        function saveAllData() {
+            localStorage.setItem('calc_expr', currentExpr);
+            localStorage.setItem('calc_history', JSON.stringify(historyData));
+            localStorage.setItem('calc_notes', JSON.stringify(notesData));
+            localStorage.setItem('calc_settings', JSON.stringify(noteSettings));
+            localStorage.setItem('calc_session_closed', isSessionActive ? "" : "yes");
+        }
+
+        // --- КЛАВІАТУРА ---
         const pages = {
             1: [
-                { t: 'C', c: 'btn orange', a: 'clear' },
-                { t: '÷', c: 'btn green', a: '/' },
-                { t: '×', c: 'btn green', a: '*' },
-                { t: '-', c: 'btn green', a: '-' },
-                
-                { t: '7', c: 'btn', a: '7' },
-                { t: '8', c: 'btn', a: '8' },
-                { t: '9', c: 'btn', a: '9' },
-                { t: '+', c: 'btn green', a: '+' },
-                
-                { t: '4', c: 'btn', a: '4' },
-                { t: '5', c: 'btn', a: '5' },
-                { t: '6', c: 'btn', a: '6' },
-                { t: '.', c: 'btn green', a: '.' },
-                
-                { t: '1', c: 'btn', a: '1' },
-                { t: '2', c: 'btn', a: '2' },
-                { t: '3', c: 'btn', a: '3' },
-                { t: '=', c: 'btn bg-green', a: '=' },
-                
-                { t: '', c: 'empty', a: '' },
-                { t: '0', c: 'btn', a: '0' },
-                { t: '1/2', c: 'btn green small', a: 'toggle' },
-                { t: '', c: 'empty', a: '' }
+                { t: 'C', c: 'btn orange', a: 'clear' }, { t: '÷', c: 'btn green', a: '/' }, { t: '×', c: 'btn green', a: '*' }, { t: '-', c: 'btn green', a: '-' },
+                { t: '7', c: 'btn', a: '7' }, { t: '8', c: 'btn', a: '8' }, { t: '9', c: 'btn', a: '9' }, { t: '+', c: 'btn green', a: '+' },
+                { t: '4', c: 'btn', a: '4' }, { t: '5', c: 'btn', a: '5' }, { t: '6', c: 'btn', a: '6' }, { t: '.', c: 'btn green', a: '.' },
+                { t: '1', c: 'btn', a: '1' }, { t: '2', c: 'btn', a: '2' }, { t: '3', c: 'btn', a: '3' }, { t: '=', c: 'btn bg-green', a: '=' },
+                { t: '', c: 'empty', a: '' }, { t: '0', c: 'btn', a: '0' }, { t: '( )', c: 'btn green small', a: 'paren_swipe' }, { t: '►', c: 'btn green small', a: 'toggle' }
             ],
             2: [
-                { t: 'C', c: 'btn orange', a: 'clear' },
-                { t: '( )', c: 'btn green', a: 'paren' },
-                { t: '%', c: 'btn green', a: '%' },
-                { t: '+/-', c: 'btn green', a: 'sign' },
-                
-                { t: '7', c: 'btn', a: '7' },
-                { t: '8', c: 'btn', a: '8' },
-                { t: '9', c: 'btn', a: '9' },
-                { t: '√', c: 'btn green', a: 'sqrt' },
-                
-                { t: '4', c: 'btn', a: '4' },
-                { t: '5', c: 'btn', a: '5' },
-                { t: '6', c: 'btn', a: '6' },
-                { t: '.', c: 'btn green', a: '.' },
-                
-                { t: '1', c: 'btn', a: '1' },
-                { t: '2', c: 'btn', a: '2' },
-                { t: '3', c: 'btn', a: '3' },
-                { t: '=', c: 'btn bg-green', a: '=' },
-                
-                { t: '', c: 'empty', a: '' },
-                { t: '0', c: 'btn', a: '0' },
-                { t: '2/2', c: 'btn green small', a: 'toggle' },
-                { t: '', c: 'empty', a: '' }
+                { t: 'C', c: 'btn orange', a: 'clear' }, { t: '√', c: 'btn green', a: 'sqrt' }, { t: '%', c: 'btn green', a: '%' }, { t: '+/-', c: 'btn green', a: 'sign' },
+                { t: '7', c: 'btn', a: '7' }, { t: '8', c: 'btn', a: '8' }, { t: '9', c: 'btn', a: '9' }, { t: '-', c: 'btn green', a: '-' },
+                { t: '4', c: 'btn', a: '4' }, { t: '5', c: 'btn', a: '5' }, { t: '6', c: 'btn', a: '6' }, { t: '+', c: 'btn green', a: '+' },
+                { t: '1', c: 'btn', a: '1' }, { t: '2', c: 'btn', a: '2' }, { t: '3', c: 'btn', a: '3' }, { t: '=', c: 'btn bg-green', a: '=' },
+                { t: '', c: 'empty', a: '' }, { t: '0', c: 'btn', a: '0' }, { t: '.', c: 'btn green', a: '.' }, { t: '◄', c: 'btn green small', a: 'toggle' }
             ]
         };
 
         function renderKeypad() {
             const keypad = document.getElementById('keypad');
             keypad.innerHTML = '';
-            
             pages[currentPage].forEach(btn => {
-                const button = document.createElement('button');
-                button.className = btn.c;
-                button.innerText = btn.t;
-                if (btn.a !== '') {
-                    button.onclick = () => handleInput(btn.a);
+                const wrapper = document.createElement('div');
+                wrapper.className = 'btn-wrapper';
+                
+                if (btn.c !== 'empty') {
+                    const button = document.createElement('button');
+                    button.className = btn.c;
+                    button.innerText = btn.t;
+
+                    // Швидка обробка натискань через touchstart
+                    if (btn.a === 'paren_swipe') {
+                        let startX = 0;
+                        button.addEventListener('touchstart', e => {
+                            e.preventDefault(); button.classList.add('pressed');
+                            startX = e.touches[0].clientX;
+                            if(navigator.vibrate) navigator.vibrate(10);
+                        });
+                        button.addEventListener('touchend', e => {
+                            button.classList.remove('pressed');
+                            let endX = e.changedTouches[0].clientX;
+                            let diff = endX - startX;
+                            if (diff > 30) handleInput(')'); // Свайп вправо
+                            else if (diff < -30) handleInput('('); // Свайп вліво
+                            else handleInput('paren'); // Просто клік
+                        });
+                    } else {
+                        button.addEventListener('touchstart', e => {
+                            e.preventDefault(); button.classList.add('pressed');
+                            if(navigator.vibrate) navigator.vibrate(10);
+                            handleInput(btn.a);
+                        });
+                        button.addEventListener('touchend', e => button.classList.remove('pressed'));
+                        button.addEventListener('touchcancel', e => button.classList.remove('pressed'));
+                    }
+                    wrapper.appendChild(button);
                 }
-                keypad.appendChild(button);
+                keypad.appendChild(wrapper);
             });
         }
 
-        function scrollToRight() {
-            const container = document.getElementById('scroll-container');
-            container.scrollLeft = container.scrollWidth;
-        }
-
-        function updateDisplay() {
-            const exprDiv = document.getElementById('expression');
-            
-            let formattedExpr = currentExpr
-                .replace(/\//g, '<span class="op">÷</span>')
-                .replace(/\*/g, '<span class="op">×</span>')
-                .replace(/\+/g, '<span class="op">+</span>')
-                .replace(/\-/g, '<span class="op">-</span>');
-                
-            exprDiv.innerHTML = formattedExpr;
-            calculateRealTime();
-            
-            // Прокручуємо до кінця виразу, якщо він задовгий
-            setTimeout(scrollToRight, 10);
-        }
-
         function handleInput(action) {
-            if (action === 'clear') {
-                currentExpr = "";
-                document.getElementById('result').innerText = "";
-            } else if (action === 'toggle') {
-                currentPage = currentPage === 1 ? 2 : 1;
-                renderKeypad();
-                return;
+            if (action === 'clear') { 
+                currentExpr = ""; 
+                document.getElementById('result').innerText = ""; 
+                closeHistorySession(); // Закриваємо групу історії
+            } else if (action === 'toggle') { 
+                currentPage = currentPage === 1 ? 2 : 1; 
+                renderKeypad(); return; 
             } else if (action === '=') {
-                let res = document.getElementById('result').innerText;
-                if (res) {
-                    currentExpr = res.replace('=', '');
-                    document.getElementById('result').innerText = "";
+                let resText = document.getElementById('result').innerText.replace('=', '');
+                if (resText !== "" && currentExpr !== resText) { 
+                    addToHistory(currentExpr, resText); 
+                    currentExpr = resText; 
+                    document.getElementById('result').innerText = ""; 
                 }
             } else if (action === 'paren') {
-                let openCount = (currentExpr.match(/\(/g) || []).length;
-                let closeCount = (currentExpr.match(/\)/g) || []).length;
-                currentExpr += (openCount > closeCount) ? ')' : '(';
-            } else if (action === 'sqrt') {
-                currentExpr += '√(';
+                let open = (currentExpr.match(/\(/g) || []).length;
+                let close = (currentExpr.match(/\)/g) || []).length;
+                currentExpr += (open > close) ? ')' : '(';
+            } else if (action === '(' || action === ')') {
+                currentExpr += action;
+            } else if (action === 'sqrt') { 
+                currentExpr += '√('; 
             } else if (action === 'sign') {
                 const match = currentExpr.match(/(\d+\.?\d*)$/);
-                if (match) {
-                    currentExpr = currentExpr.slice(0, match.index) + '(-' + match[0];
-                }
-            } else {
-                currentExpr += action;
+                if (match) currentExpr = currentExpr.slice(0, match.index) + '(-' + match[0] + ')';
+            } else { 
+                currentExpr += action; 
             }
             updateDisplay();
         }
 
-        function backspace() {
-            if (currentExpr.length > 0) {
-                if (currentExpr.slice(-2) === '√(') {
-                    currentExpr = currentExpr.slice(0, -2);
-                } else {
-                    currentExpr = currentExpr.slice(0, -1);
-                }
-                updateDisplay();
-            }
+        // Обробка Backspace
+        document.getElementById('btn-backspace').addEventListener('touchstart', e => {
+            e.preventDefault();
+            e.target.style.transform = "scale(0.85)";
+            if(navigator.vibrate) navigator.vibrate(10);
+            
+            if (currentExpr.endsWith('√(')) currentExpr = currentExpr.slice(0, -2);
+            else currentExpr = currentExpr.slice(0, -1);
+            
+            if (currentExpr === "") closeHistorySession(); // Якщо все стерто - закриваємо групу
+            
+            updateDisplay();
+        });
+        document.getElementById('btn-backspace').addEventListener('touchend', e => e.target.style.transform = "none");
+
+        function updateDisplay() {
+            const exprDiv = document.getElementById('expression');
+            exprDiv.innerHTML = currentExpr.replace(/\//g, '<span class="op">÷</span>')
+                                           .replace(/\*/g, '<span class="op">×</span>')
+                                           .replace(/\+/g, '<span class="op">+</span>')
+                                           .replace(/\-/g, '<span class="op">-</span>');
+            calculateRealTime();
+            setTimeout(() => { document.getElementById('scroll-container').scrollLeft = 99999; }, 10);
+            saveAllData(); // Зберігаємо прогрес
         }
 
         function calculateRealTime() {
-            if (currentExpr === "") {
-                document.getElementById('result').innerText = "";
+            if (!currentExpr || /^-?\d*\.?\d*$/.test(currentExpr)) { 
+                document.getElementById('result').innerText = ""; return; 
+            }
+            try {
+                let s = currentExpr.replace(/×/g, '*').replace(/÷/g, '/').replace(/%/g, '/100').replace(/√\(/g, 'Math.sqrt(');
+                let open = (s.match(/\(/g) || []).length;
+                let close = (s.match(/\)/g) || []).length;
+                while (open > close) { s += ')'; close++; }
+                const res = new Function('return ' + s)();
+                if (res !== undefined && !isNaN(res) && isFinite(res)) {
+                    document.getElementById('result').innerText = '=' + (Math.round(res * 1000000) / 1000000);
+                }
+            } catch (e) { document.getElementById('result').innerText = ""; }
+        }
+
+        // --- ЛОГІКА ІСТОРІЇ (СЕСІЇ) ---
+        function closeHistorySession() {
+            isSessionActive = false;
+            saveAllData();
+        }
+
+        function addToHistory(expr, res) {
+            const displayExpr = expr.replace(/\//g, '÷').replace(/\*/g, '×');
+            const item = { expr: displayExpr, res: res, time: new Date().toISOString() };
+
+            if (!isSessionActive || historyData.length === 0) {
+                // Створюємо нову сесію (групу)
+                historyData.unshift([item]);
+                isSessionActive = true;
+            } else {
+                // Додаємо в існуючу сесію
+                historyData[0].push(item);
+            }
+            saveAllData();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            list.innerHTML = '';
+            if (historyData.length === 0) {
+                list.innerHTML = '<div style="color:#888; text-align:center; margin-top:20%;">Історія порожня</div>';
                 return;
             }
 
-            try {
-                let calcStr = currentExpr
-                    .replace(/×/g, '*')
-                    .replace(/÷/g, '/')
-                    .replace(/%/g, '/100');
-
-                calcStr = calcStr.replace(/√\(/g, 'Math.sqrt(');
-
-                let openCount = (calcStr.match(/\(/g) || []).length;
-                let closeCount = (calcStr.match(/\)/g) || []).length;
-                while (openCount > closeCount) {
-                    calcStr += ')';
-                    closeCount++;
-                }
-
-                const result = new Function('return ' + calcStr)();
+            historyData.forEach(session => {
+                if(session.length === 0) return;
+                const sessionDiv = document.createElement('div');
+                sessionDiv.className = 'history-session';
                 
-                if (result !== undefined && !isNaN(result) && typeof result === 'number' && result !== Infinity) {
-                    let finalResult = Math.round(result * 10000000) / 10000000;
-                    document.getElementById('result').innerText = '=' + finalResult;
-                } else {
-                    document.getElementById('result').innerText = "";
-                }
-            } catch (e) {
-                document.getElementById('result').innerText = "";
-            }
+                // Час початку сесії
+                const sTime = new Date(session[0].time).toLocaleString('uk-UA', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+                sessionDiv.innerHTML = `<div class="session-time">${sTime}</div>`;
+
+                session.forEach(op => {
+                    const el = document.createElement('div');
+                    el.className = 'history-item';
+                    el.innerHTML = `<div class="h-expr">${op.expr} =</div><div class="h-res">${op.res}</div>`;
+                    el.onclick = () => {
+                        currentExpr = op.res; updateDisplay();
+                        closeMenu('history-menu'); closeMenu('main-menu');
+                    };
+                    sessionDiv.appendChild(el);
+                });
+                list.appendChild(sessionDiv);
+            });
         }
 
+        // --- ЛОГІКА НОТАТОК ---
+        function renderNotes() {
+            const grid = document.getElementById('notes-grid');
+            grid.innerHTML = '';
+            notesData.forEach(note => {
+                const card = document.createElement('div');
+                card.className = 'note-card';
+                card.innerText = note.text;
+                // Застосовуємо стилі (масштабуємо розмір для прев'ю)
+                card.style.color = noteSettings.color;
+                card.style.filter = `brightness(${noteSettings.bright}%)`;
+                card.style.fontSize = Math.max(12, noteSettings.size * 0.7) + 'px';
+                
+                card.onclick = () => viewNote(note.id);
+                grid.appendChild(card);
+            });
+        }
+
+        function openNoteEditor(id = null) {
+            editingNoteId = id;
+            if (id) {
+                const note = notesData.find(n => n.id === id);
+                document.getElementById('note-input').value = note ? note.text : "";
+            } else {
+                document.getElementById('note-input').value = "";
+            }
+            openMenu('note-edit-menu');
+        }
+
+        function saveNote() {
+            const text = document.getElementById('note-input').value.trim();
+            if (text) {
+                if (editingNoteId) {
+                    const note = notesData.find(n => n.id === editingNoteId);
+                    if (note) note.text = text;
+                } else {
+                    notesData.unshift({ id: Date.now(), text: text });
+                }
+                saveAllData();
+            }
+            closeMenu('note-edit-menu');
+            renderNotes();
+        }
+
+        let tapTaps = 0;
+        let tapTimer = null;
+        function viewNote(id) {
+            const note = notesData.find(n => n.id === id);
+            if (!note) return;
+            
+            const reader = document.getElementById('note-reader-content');
+            reader.innerText = note.text;
+            
+            // Застосування налаштувань
+            reader.style.fontSize = noteSettings.size + 'px';
+            reader.style.color = noteSettings.color;
+            reader.style.filter = `brightness(${noteSettings.bright}%)`;
+
+            // Потрійний тап
+            reader.ontouchstart = () => {
+                tapTaps++;
+                clearTimeout(tapTimer);
+                if (tapTaps === 3) {
+                    tapTaps = 0;
+                    closeMenu('note-read-menu');
+                    openNoteEditor(id);
+                } else {
+                    tapTimer = setTimeout(() => { tapTaps = 0; }, 400);
+                }
+            };
+
+            openMenu('note-read-menu');
+        }
+
+        function applySettings() {
+            noteSettings.size = parseInt(document.getElementById('set-size').value);
+            noteSettings.color = document.getElementById('set-color').value;
+            noteSettings.bright = parseInt(document.getElementById('set-bright').value);
+            saveAllData();
+        }
+
+        // --- УПРАВЛІННЯ МЕНЮ ---
+        function openMenu(id) {
+            if(id === 'history-menu') renderHistory();
+            if(id === 'notes-list-menu') renderNotes();
+            document.getElementById(id).classList.add('active');
+        }
+        function closeMenu(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // Свайп знизу вгору для головного меню
+        let startY = 0;
+        const watchArea = document.getElementById('watch-container');
+        watchArea.addEventListener('touchstart', e => startY = e.touches[0].clientY, {passive: true});
+        watchArea.addEventListener('touchend', e => {
+            if (startY - e.changedTouches[0].clientY > 50) {
+                const menus = document.querySelectorAll('.menu-overlay.active');
+                if (menus.length === 0) openMenu('main-menu');
+            }
+        }, {passive: true});
+
         // Ініціалізація
+        loadSavedData();
         renderKeypad();
     </script>
 </body>
 </html>
+
