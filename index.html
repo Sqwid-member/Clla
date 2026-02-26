@@ -39,7 +39,6 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
-        /* --- ЕКРАН ТА КНОПКИ КАЛЬКУЛЯТОРА --- */
         .display {
             height: 40%; padding: 12% 12% 2% 12%;
             display: flex; flex-direction: column;
@@ -80,18 +79,17 @@
         .keypad {
             height: 60%; display: grid;
             grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(5, 1fr);
-            padding: 2% 10% 12% 10%; gap: 0; /* Прибрали gap для більшої зони натискання */
+            padding: 2% 10% 12% 10%; gap: 0;
         }
 
         .btn {
             background: transparent; border: none; color: var(--text-main);
             font-size: 6.5vw; cursor: pointer; border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
-            width: 100%; height: 100%; /* Розтягуємо на всю комірку */
-            transition: transform 0.05s, background-color 0.05s; /* Дуже швидка анімація */
+            width: 100%; height: 100%;
+            transition: transform 0.05s, background-color 0.05s;
         }
 
-        /* Клас для швидкого відгуку замість :active */
         .btn.pressed { transform: scale(0.8); background-color: rgba(255, 255, 255, 0.2); }
 
         .btn.orange { color: var(--text-orange); }
@@ -108,7 +106,6 @@
         .btn.small { font-size: 4.5vw; font-weight: bold; }
         .empty { visibility: hidden; }
 
-        /* --- ЗАГАЛЬНІ СТИЛІ МЕНЮ --- */
         .menu-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--menu-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
@@ -300,8 +297,8 @@
         let currentExpr = "";
         let currentPage = 1;
         
-        let historyData = []; // Масив сесій (масив масивів)
-        let isSessionActive = false; // Чи відкрита поточна сесія історії
+        let historyData = [];
+        let isSessionActive = false;
         
         let notesData = [];
         let editingNoteId = null;
@@ -373,7 +370,6 @@
                     button.className = btn.c;
                     button.innerText = btn.t;
 
-                    // Швидка обробка натискань через touchstart
                     if (btn.a === 'paren_swipe') {
                         let startX = 0;
                         button.addEventListener('touchstart', e => {
@@ -408,7 +404,7 @@
             if (action === 'clear') { 
                 currentExpr = ""; 
                 document.getElementById('result').innerText = ""; 
-                closeHistorySession(); // Закриваємо групу історії
+                closeHistorySession();
             } else if (action === 'toggle') { 
                 currentPage = currentPage === 1 ? 2 : 1; 
                 renderKeypad(); return; 
@@ -478,7 +474,6 @@
             } catch (e) { document.getElementById('result').innerText = ""; }
         }
 
-        // --- ЛОГІКА ІСТОРІЇ (СЕСІЇ) ---
         function closeHistorySession() {
             isSessionActive = false;
             saveAllData();
@@ -530,7 +525,6 @@
             });
         }
 
-        // --- ЛОГІКА НОТАТОК ---
         function renderNotes() {
             const grid = document.getElementById('notes-grid');
             grid.innerHTML = '';
@@ -611,7 +605,6 @@
             saveAllData();
         }
 
-        // --- УПРАВЛІННЯ МЕНЮ ---
         function openMenu(id) {
             if(id === 'history-menu') renderHistory();
             if(id === 'notes-list-menu') renderNotes();
@@ -632,7 +625,6 @@
             }
         }, {passive: true});
 
-        // Ініціалізація
         loadSavedData();
         renderKeypad();
     </script>
